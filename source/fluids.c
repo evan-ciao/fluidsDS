@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <nds.h>
+#include <math.h>
 
 #include "fluids.h"
 
@@ -9,15 +10,22 @@
 #define BOX_END_Y 191
 
 #define PHYSICS_TIME_STEP 0.016
+#define DAMPING 0.7
 
 void fSInit(struct fluidSimulation* fS, u16 size)
 {
     fS->size = size;
     fS->particles = malloc(size * sizeof(particle));
 
+    // grid formation
+    int patriclesPerRow = (int)sqrt(size);
+    int particlesPerCol = (size - 1) / patriclesPerRow + 1;
+
     for (size_t i = 0; i < size; i++)
     {
-        fS->particles[i] = (particle){{i, 0}, {0, 0}, {0, -10}};
+        fS->particles[i] = (particle){
+            {(i % patriclesPerRow - patriclesPerRow / 2.0 + 0.5) * 2 + (SCREEN_WIDTH - patriclesPerRow) / 2.0, (i / patriclesPerRow - particlesPerCol / 2.0 + 0.5) * 2 + 60},
+            {0, 0}, {0, -10}};
     }
 }
 
@@ -48,6 +56,7 @@ void fSUpdateParticles(struct fluidSimulation* fS)
         if (fS->particles[i].position.y > BOX_END_Y)
         {
             fS->particles[i].position.y -= fS->particles[i].position.y - BOX_END_Y;
+            fS->particles[i].velocity.y = -(fS->particles[i].velocity.y) * DAMPING;
         }
     }
 }

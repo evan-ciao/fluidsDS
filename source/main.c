@@ -13,7 +13,9 @@ int main(int argc, char **argv)
     glClearColor(31, 31, 31, 31);
 
     struct fluidSimulation fluid;
-    fSInit(&fluid, 128);
+    fSInit(&fluid, 200);
+
+    int a = 0;
 
     while (1)
     {
@@ -25,8 +27,18 @@ int main(int argc, char **argv)
         scanKeys();
         
         uint16_t keys = keysHeld();
+        
         if (keys & KEY_START)
             break;
+
+        for (size_t i = 0; i < 100; i++)
+        {
+            for (size_t j = 0; j < 100; j++)
+            {
+                a = j;
+            }
+        }
+        
 
         glBegin2D();
 
