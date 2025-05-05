@@ -15,3 +15,4 @@ struct fluidSimulation
 
 void fSInit(struct fluidSimulation* fS, u16 size);
 void fSUpdateParticles(struct fluidSimulation* fS);
+void fSDraw(struct fluidSimulation* fS);

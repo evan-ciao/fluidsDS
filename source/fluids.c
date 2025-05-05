@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <nds.h>
 #include <math.h>
+#include <gl2d.h>
 
 #include "fluids.h"
+#include "water.h"
+glImage waterSprite;
 
 #define BOX_START_X 0
 #define BOX_END_X 255
@@ -27,6 +30,29 @@ void fSInit(struct fluidSimulation* fS, u16 size)
             {(i % patriclesPerRow - patriclesPerRow / 2.0 + 0.5) * 2 + (SCREEN_WIDTH - patriclesPerRow) / 2.0, (i / patriclesPerRow - particlesPerCol / 2.0 + 0.5) * 2 + 60},
             {0, 0}, {0, -10}};
     }
+
+    // initialize water sprite
+    
+    // some sweet sweet memory
+    vramSetBankA(VRAM_A_TEXTURE);
+    vramSetBankE(VRAM_E_TEX_PALETTE);
+
+    int waterID = glLoadTileSet(
+        &waterSprite, 
+        8, 
+        8, 
+        8, 
+        8, 
+        GL_RGB256,
+        8, 
+        8, 
+        TEXGEN_TEXCOORD | GL_TEXTURE_COLOR0_TRANSPARENT, 
+        256, 
+        waterPal, 
+        waterBitmap);
+
+    if (waterID < 0)
+        printf("[fSInit] failed to load water sprite %d\n", waterID);
 }
 
 void fSUpdateParticles(struct fluidSimulation* fS)
@@ -58,5 +84,13 @@ void fSUpdateParticles(struct fluidSimulation* fS)
             fS->particles[i].position.y -= fS->particles[i].position.y - BOX_END_Y;
             fS->particles[i].velocity.y = -(fS->particles[i].velocity.y) * DAMPING;
         }
+    }
+}
+
+void fSDraw(struct fluidSimulation* fS)
+{
+    for (size_t i = 0; i < fS->size; i++)
+    {
+        glSprite(fS->particles[i].position.x, fS->particles[i].position.y, GL_FLIP_NONE, &waterSprite);
     }
 }
