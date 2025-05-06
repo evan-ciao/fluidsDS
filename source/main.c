@@ -13,7 +13,7 @@ int main(int argc, char **argv)
     glClearColor(31, 31, 31, 31);
 
     struct fluidSimulation fluid;
-    fSInit(&fluid, 256);
+    fSInit(&fluid, 100);
 
     vector2 p = {128, 128};
 

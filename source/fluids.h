@@ -3,26 +3,37 @@
 typedef struct
 {
     vector2 position;
-    vector2 velocity;
-    vector2 acceleration;
+    vector2_float velocity;
+    vector2_float acceleration;
 } particle;
 
 struct fluidSimulation
 {
-    u16 size;
+    u8 size;
     particle* particles;
+    float* densities;
 };
 
-void fSInit(struct fluidSimulation* fS, u16 size);
+void fSInit(struct fluidSimulation* fS, u8 size);
 void fSUpdateParticles(struct fluidSimulation* fS);
 void fSDraw(struct fluidSimulation* fS);
 
 float calculateDensity(struct fluidSimulation* fS, vector2 point);
+void fSUpdateDensities(struct fluidSimulation* fS);
 
-#define SMOOTHING_RADIUS 32
-static inline float smoothingKernel(float radius, float dst)
+#define SMOOTHING_RADIUS 16
+#define SMOOTHING_RADIUS_SQUARED SMOOTHING_RADIUS * SMOOTHING_RADIUS
+
+// trying to bypass the smoothing kernel to keep everything much simpler
+static inline float smoothingKernel(u8 radius, u16 sqrdst)
 {
-    // keep density constant for different radius by diving by the volume of the kernel function
-    float volume = 3.14 * radius * radius;  // calculated with wolfram alpha in some obscure way
-    return float_max(0, radius - dst) / volume;
+    return (max(0, radius - sqrdst));
+}
+
+static inline float smoothingKernelDerivative(u8 radius, u16 sqrdst)
+{
+    if (sqrdst >= radius * radius)
+        return 0;
+    
+    return -1;
 }

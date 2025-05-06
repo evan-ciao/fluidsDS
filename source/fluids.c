@@ -13,15 +13,16 @@ glImage waterSprite;
 #define BOX_END_Y 191
 
 #define PARTICLE_RADIUS 4
-#define HALF_PARTICLE_RADIUS 2
+#define HALF_PARTICLE_RADIUS PARTICLE_RADIUS / 2
 
 #define PHYSICS_TIME_STEP 0.016
-#define DAMPING 0.7
+#define DAMPING 0.5
 
-void fSInit(struct fluidSimulation* fS, u16 size)
+void fSInit(struct fluidSimulation* fS, u8 size)
 {
     fS->size = size;
     fS->particles = malloc(size * sizeof(particle));
+    fS->densities = malloc(size * sizeof(float));
 
     // grid formation
     int patriclesPerRow = (int)sqrt(size);
@@ -61,15 +62,16 @@ void fSInit(struct fluidSimulation* fS, u16 size)
 float calculateDensity(struct fluidSimulation* fS, vector2 point)
 {
     float density = 0;
-    const float mass = 3;
+    const int mass = 3;
 
-    // loop over all particles and apply other particles forces
     for (size_t i = 0; i < fS->size; i++)
     {
-        float dst = vector2_magnitude(vector2_subtract(fS->particles[i].position, point));
-        float influence = smoothingKernel(SMOOTHING_RADIUS, dst);
-
-        density += mass * influence;
+        u16 sqrmag = vector2_squaremag(vector2_subtract(fS->particles[i].position, point));
+        if (sqrmag < SMOOTHING_RADIUS_SQUARED)
+        {
+            float influence = smoothingKernel(SMOOTHING_RADIUS, sqrmag);
+            density += mass * influence;
+        }
     }
 
     return density;
@@ -79,8 +81,11 @@ void fSUpdateParticles(struct fluidSimulation* fS)
 {
     for (size_t i = 0; i < fS->size; i++)
     {
+        // update densities
+        fS->densities[i] = calculateDensity(fS, fS->particles[i].position);
+
         // update velocities
-        fS->particles[i].velocity = vector2_add(fS->particles[i].velocity, fS->particles[i].acceleration);
+        fS->particles[i].velocity = vector2f_add(fS->particles[i].velocity, fS->particles[i].acceleration);
 
         // update positions
         fS->particles[i].position.x += fS->particles[i].velocity.x * PHYSICS_TIME_STEP;
